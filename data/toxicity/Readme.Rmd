@@ -25,6 +25,7 @@ You must create a model which predicts a probability of each type of toxicity fo
 pacman::p_load(tidyverse)
 toxic_dat <- read_csv("train.csv") %>% 
   glimpse
+#write_rds(toxic_dat, path = "toxic_dat.rds")
 #save(toxic_dat, file = "toxic_dat.Rdata")
 ```
 
