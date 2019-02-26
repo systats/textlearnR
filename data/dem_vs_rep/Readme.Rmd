@@ -1,0 +1,24 @@
+---
+title: "Democrat Vs. Republican Tweets"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+* [Kaggle Challange](https://www.kaggle.com/kapastor/democratvsrepublicantweets)
+
+Extracted tweets from all of the representatives (latest 200 as of May 17th 2018)
+
+
+```{r, eval = T}
+pacman::p_load(tidyverse)
+demrep_dat <- read_csv("ExtractedTweets.csv") %>% 
+  glimpse
+
+#write_rds(toxic_dat, path = "toxic_dat.rds")
+#save(demrep_dat, file = "demrep_dat.Rdata")
+```
+
