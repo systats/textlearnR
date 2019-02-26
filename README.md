@@ -2,6 +2,13 @@
 
 A simple collection of well working NLP models (Keras, H2O, StarSpace) tuned and benchmarked on a variety of datasets.
 
+## Agenda
+
+1. collect datasets
+2. collect new models
+3. build infrastructure
+4. unit testing
+
 ## Infrastructure
 
 * simple generic wrapper/class for models
