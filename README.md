@@ -4,12 +4,12 @@ A simple collection of well working NLP models (Keras, H2O, StarSpace) tuned and
 
 ## Infrastructure
 
-* simple generic wrapper for models 
-* class
+* simple generic wrapper/class for models
 * parameter iterator 
 * parameter search
     + full grid
-    + Bayesian Optimizer
+    + Bayesian optimizer
+* implement one function to rule all models/datasets benchmarks. 
 
 
 ## Supervised Models
@@ -29,4 +29,3 @@ A simple collection of well working NLP models (Keras, H2O, StarSpace) tuned and
 * [nlp-datasets](https://github.com/niderhoff/nlp-datasets)
 * Scopus Classification
 * party affiliations
-
