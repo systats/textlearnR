@@ -12,6 +12,7 @@ A simple collection of well working NLP models (Keras, H2O, StarSpace) tuned and
 ## Infrastructure
 
 * simple generic wrapper/class for models
+* everything is a parameter
 * parameter iterator 
 * parameter search
     + full grid
@@ -28,6 +29,7 @@ A simple collection of well working NLP models (Keras, H2O, StarSpace) tuned and
 * HAN
 
 
+
 ## Datasets
 
 * [celebrity-faceoff](https://github.com/jlacko/celebrity-faceoff)
@@ -36,3 +38,16 @@ A simple collection of well working NLP models (Keras, H2O, StarSpace) tuned and
 * [nlp-datasets](https://github.com/niderhoff/nlp-datasets)
 * Scopus Classification
 * party affiliations
+
+
+### Other Data
+
+* https://www.kaggle.com/mrisdal/fake-news/home
+* https://www.kaggle.com/zusmani/paradise-papers/home
+* https://www.kaggle.com/shujian/arxiv-nlp-papers-with-github-link
+
+## Other NLP Resources
+
+* https://www.kaggle.com/rtatman/stopword-lists-for-19-languages
+
+

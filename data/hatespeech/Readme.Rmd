@@ -1,0 +1,34 @@
+---
+title: "Automated Hate Speech Detection"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+* [Paper Github](https://github.com/t-davidson/hate-speech-and-offensive-language)
+
+
+* `count` number of CrowdFlower users who coded each tweet (min is 3, sometimes more users coded a tweet when judgments were determined to be unreliable by CF).
+* `hate_speech` number of CF users who judged the tweet to be hate speech.
+* `offensive_language` = number of CF users who judged the tweet to be offensive.
+* `neither` = number of CF users who judged the tweet to be neither offensive nor non-offensive.
+* `class` = class label for majority of CF users.
+    0 - hate speech
+    1 - offensive  language
+    2 - neither
+
+
+You must create a model which predicts a probability of each type of toxicity for each comment.
+
+```{r, eval = T}
+pacman::p_load(tidyverse)
+hate_dat <- read_csv("labeled_data.csv") %>% 
+  rename(id = X1) %>%
+  glimpse
+# write_rds(toxic_dat, path = "toxic_dat.rds")
+# save(toxic_dat, file = "hate_dat")
+```
+
