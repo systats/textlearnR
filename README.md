@@ -1,14 +1,14 @@
 textlearnR
 ================
 
-A simple collection of well working NLP models (Keras) in R, tuned and benchmarked on a variety of datasets. Work in progress and only supporting classification tasks (at the moment).
+A simple collection of well working NLP models (Keras) in R, tuned and benchmarked on a variety of datasets. This is a work in progress and the first version only supports classification tasks (at the moment).
 
 ![](Readme_files/figure-markdown_github/unnamed-chunk-1-1.png)
 
 What can this package do for you? (in the future)
 -------------------------------------------------
 
-Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that a prior defined and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (comming soon). Furthermore, it allows to define parameters for text processing (max number of words and text length), which are also considered to be priors.
+Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined by a prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
 
 Beside language models, `textlearnR` also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable:
 
@@ -21,12 +21,12 @@ Beside language models, `textlearnR` also integrates third party packages for au
 #### Optimization
 
 -   [`mlrMBO`](https://github.com/mlr-org/mlrMBO) Bayesian and model-based optimization.
--   [`GA`](https://github.com/luca-scr/GA) Genetic algorithems for stochastic optimization.
+-   [`GA`](https://github.com/luca-scr/GA) Genetic algorithms for stochastic optimization.
 -   Others:
     -   Nelder–Mead simplex (gradient-free)
     -   Particle swarm (gradient-free)
 
-For constructing new parameter objects the tidy way, the package `dials` is used. Each model optimized is saved to a SQLite database in `data/model_dump.db`. Of course, committed to [tidy principals](https://cran.r-project.org/package=tidyverse/vignettes/manifesto.html). Contributions are highly welcomed!
+For constructing new parameter objects the tidy way, the package `dials` is used. Each model optimized is saved to a SQLite database in `data/model_dump.db`. Of course, committed to [tidy principles](https://cran.r-project.org/package=tidyverse/vignettes/manifesto.html). Contributions are highly welcomed!
 
 Supervised Models
 -----------------
