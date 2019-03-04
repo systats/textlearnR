@@ -25,11 +25,70 @@ From each account 1,200 tweets (80%) are included in training dataset and 300 (2
 pacman::p_load(tidyverse)
 
 tweets <- read_csv("train_tweets.csv") %>% 
-  mutate(split = "train") %>% 
+  mutate(split = T) %>% 
   bind_rows(read_csv("test_tweets.csv")) %>% 
+  mutate(split = ifelse(is.na(split), F, split)) %>%
   glimpse
 
 tweets %>% count(split)
 #save(tweets, file = "tweets.Rdata")
 ```
 
+```{r}
+celeb_mat <- tweets$name %>%
+  dummies::dummy() 
+
+celeb_names <- celeb_mat %>% 
+  colnames %>% 
+  str_remove("name|/Users/syro/MEGA/projects/celebrity-faceoff/code/keras_cnn.Rmd")
+
+celeb_target <- celeb_mat %>% 
+  as_tibble %>% 
+  set_names(celeb_names) %>% 
+  glimpse
+```
+
+```{r}
+set.seed(2019)
+text_train <- tweets %>% filter(split) %>% pull(text)
+text_test <- tweets %>% filter(!split) %>% pull(text)
+y_train <- celeb_target[tweets$split, ] %>% as.matrix
+y_test <- celeb_target[!tweets$split, ] %>% as.matrix
+
+celeb_dat <- list(
+  text_train = text_train, 
+  text_test = text_test, 
+  y_train = y_train, 
+  y_test = y_test
+)
+
+celeb_dat %>% glimpse
+save(celeb_dat, file = "celeb_dat.Rdata")
+```
+
+
+
+# Old
+
+* moved into the tuning process
+* adds 2 new parameter
+
+```{r, eval = F}
+library(keras)
+maxlen <- 60
+max_features <- 13488
+
+tokenizer <- text_tokenizer(num_words = max_features, lower = F, split = " ", char_level = F)
+fit_text_tokenizer(tokenizer, train$text)
+
+celeb$x_train <- tokenizer %>% 
+  texts_to_sequences(train$text) %>%
+  pad_sequences(maxlen = maxlen)
+
+celeb$x_test <- tokenizer %>% 
+  texts_to_sequences(test$text) %>%
+  pad_sequences(maxlen = maxlen)
+
+celeb %>% map(dim)
+save(celeb, file = "celeb.Rdata")
+```

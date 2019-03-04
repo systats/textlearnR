@@ -5,6 +5,7 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse)
 ```
 
 
@@ -21,11 +22,56 @@ You are provided with a large number of Wikipedia comments which have been label
 
 You must create a model which predicts a probability of each type of toxicity for each comment.
 
-```{r, eval = T}
-pacman::p_load(tidyverse)
+```{r, eval = F}
 toxic_dat <- read_csv("train.csv") %>% 
   glimpse
-#write_rds(toxic_dat, path = "toxic_dat.rds")
+
+set.seed(2019)
+split_id <- sample(c(T, F), size = nrow(toxic_dat), prob = c(.9,.1), replace = T)
+
+train <- toxic_dat %>% 
+  filter(split_id) %>% 
+  mutate(split = (toxic + severe_toxic + obscene + threat + insult + identity_hate) > 0) %>% 
+  #count(toxic)
+  split(.$split) %>% 
+  map2_dfr(c(50000, 14.599), ~{
+    .x %>% sample_n(.y)
+  }) %>% 
+  arrange(sample(1:n(), n())) %>% 
+  select(split)
+
+text_train <- train$comment_text
+
+y_train <- train %>% 
+  select(toxic:identity_hate) %>%
+  as.matrix
+
+test <- toxic_dat %>% 
+  filter(!split_id) %>% 
+  group_by(toxic) %>% 
+  sample_n(1532) %>% 
+  ungroup %>% 
+  arrange(sample(1:n(), n()))
+
+text_test <- test$comment_text
+
+y_test <- test %>% 
+  select(toxic:identity_hate) %>% 
+  as.matrix
+
+toxic_dat <- list(
+  text_train = text_train, 
+  text_test = text_test, 
+  y_train = y_train, 
+  y_test = y_test
+)
+
+toxic_dat %>% glimpse
 #save(toxic_dat, file = "toxic_dat.Rdata")
+```
+
+```{r, echo = F}
+load("toxic_dat.Rdata")
+toxic_dat %>% glimpse
 ```
 

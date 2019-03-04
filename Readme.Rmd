@@ -1,0 +1,227 @@
+---
+title: "textlearnR"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, eval = T, fig.pos = "center", fig.height = 5, fig.width = 7, warning = F, message = F, error = F)
+
+pacman::p_load(devtools, tidyverse, keras, GA, dials, RSQLite, magrittr, crayon)
+devtools::load_all()
+
+# Query runs from database
+con <- dbConnect(RSQLite::SQLite(), "data/model_dump.db")
+runs <- con %>% 
+  tbl("runs") %>% 
+  as_tibble() %>%
+  reshape_runs() 
+```
+
+A simple collection of well working NLP models (Keras) in R, tuned and benchmarked on a variety of datasets. Work in progress and only supporting classification tasks (at the moment).  
+
+```{r}
+gg_compare <- runs %>% 
+  filter(data %in% c("celeb_dat", "toxic_dat")) %>%
+  group_by(model_name) %>% 
+  mutate(direct = ifelse(best, test_acc, NA_real_) %>% as.character) %>%  
+  fill(direct, .direction = "down") %>% 
+  mutate(direct = as.numeric(direct)) %>%
+  ungroup %>% 
+  mutate(model_name = forcats::fct_reorder(model_name, direct, .desc = T)) %>% 
+  mutate(label = ifelse(best, test_acc, NA)) %>% 
+  ggplot(aes(model_name, test_acc)) + 
+  geom_violin(fill = "gray50", alpha = .2, color = NA) +
+  geom_jitter(width = .03, alpha = .5) + 
+  ggrepel::geom_label_repel(aes(label = label), segment.color = "red", color = "red", nudge_y = 1) +
+  ggtitle("Test performance compared accross classifiers", subtitle = "Note: The test sets are roughly balanced") +
+  labs(x = "", y = "Test Accuracy") + 
+  facet_grid(data~backend, scales = "free_y") +
+  ggthemes::theme_hc() +
+  #scale_fill_viridis_d() + 
+  theme(legend.position = "right")
+
+gg_compare
+#plotly::ggplotly(gg_compare)
+```
+
+## What can this package do for you? (in the future)
+
+Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that a prior defined and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (comming soon). Furthermore, it allows to define parameters for text processing (max number of words and text length), which are also considered to be priors.  
+
+Beside language models, `textlearnR` also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable: 
+
+#### Searching
+
+* Grid search
+* Random search
+* Sobol sequence (quasi-random numbers designed to cover the space more evenly than uniform random numbers). Computationally expensive but parallelizeable.
+  
+#### Optimization
+
+* [`mlrMBO`](https://github.com/mlr-org/mlrMBO) Bayesian and model-based optimization.
+* [`GA`](https://github.com/luca-scr/GA) Genetic algorithems for stochastic optimization.
+* Others:
+    + Nelder–Mead simplex (gradient-free)
+    + Particle swarm (gradient-free)
+
+
+For constructing new parameter objects the tidy way, the package `dials` is used. Each model optimized is saved to a SQLite database in `data/model_dump.db`. Of course, committed to [tidy principals](https://cran.r-project.org/package=tidyverse/vignettes/manifesto.html). Contributions are highly welcomed!
+
+
+## Supervised Models
+
+[model overview](https://becominghuman.ai/cheat-sheets-for-ai-neural-networks-machine-learning-deep-learning-big-data-678c51b4b463)
+
+<!-- * simple generic wrapper/class for models -->
+<!-- * parameter validation using manual and automatic verifiaction dataset or k-Fold cross validation. -->
+<!-- * Introduce early stopping to keras during training of model -->
+
+```{r, eval = F, echo = T}
+keras_model <- list(
+  simple_mlp = textlearnR::keras_simple_mlp,
+  deep_mlp = textlearnR::keras_deep_mlp,
+  simple_lstm = textlearnR::keras_simple_lstm,
+  #deep_lstm = textlearnR::keras_deep_lstm,
+  pooled_gru = textlearnR::keras_pooled_gru,
+  cnn_lstm = textlearnR::keras_cnn_lstm,
+  cnn_gru = textlearnR::keras_cnn_gru,
+  gru_cnn = textlearnR::keras_gru_cnn,
+  multi_cnn = textlearnR::keras_multi_cnn
+)
+```
+
+
+
+## Datasets
+
+* [celebrity-faceoff](https://github.com/jlacko/celebrity-faceoff)
+* [Google Jigsaw Toxic Comment Classification](https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/data) 
+* [Hate speech detection](https://github.com/t-davidson/hate-speech-and-offensive-language)
+* [nlp-datasets](https://github.com/niderhoff/nlp-datasets)
+* Scopus Classification
+* party affiliations
+
+
+## Understand one model 
+
+```{r, echo = T}
+textlearnR::keras_simple_mlp(
+    input_dim = 10000, 
+    embed_dim = 128, 
+    seq_len = 50, 
+    output_dim = 1
+  ) %>% 
+  summary
+```
+
+* rather flowchart or ggalluvial
+
+```{r}
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+runs %>% 
+  filter(data == "celeb_dat", model_name == "simple_mlp") %>%
+  mutate(step = paste0(id, "_", step)) %>%
+  select(id, step, best, test_acc, input_dim, seq_len, embed_dim, dropout) %>%
+  gather(param, value, -step, -best, -id) %>% 
+  mutate(value = as.numeric(value)) %>%
+  drop_na %>%
+  group_by(param) %>%
+  mutate(value = ifelse(as.numeric(value) < 1, value, range01(value))) %>%   
+  ungroup %>%
+  mutate(param = factor(param, level = c("input_dim", "seq_len", "embed_dim", "dropout", "dense_dim", "test_acc"))) %>%
+  mutate(label = ifelse(param == "test_acc" & best, value, NA)) %>% 
+  ggplot(aes(param, value)) + 
+  geom_line(aes(group = step, colour = best, size = best)) +
+  ggrepel::geom_label_repel(aes(label = label), nudge_x = 1, segment.color = "red", color = "red") +
+  scale_colour_manual(values = c("black", "red")) +
+  scale_size_manual(values = c(.1, 1)) +
+  #facet_wrap(~id, ncol = 1) +
+  labs(x = "", y = "") + 
+  ggtitle("Parameter of a simple neural network", subtitle = "Note: integer variables are standardized [0, 1]") +
+  theme_minimal() + 
+  theme(
+    #axis.text.x = element_text(angle = 30, hjust = 1), 
+    legend.position = "bottom"
+  )
+```
+
+
+```{r}
+runs %>% 
+  filter(data == "celeb_dat", model_name == "multi_cnn") %>%
+  mutate(step = paste0(id, "_", step)) %>%
+  #glimpse
+  dplyr::select(id, step, best, test_acc, input_dim, seq_len, embed_dim, num_filters, dropout) %>%
+  gather(param, value, -step, -best, -id) %>% 
+  mutate(value = as.numeric(value)) %>%
+  drop_na %>%
+  group_by(param) %>%
+  mutate(value = ifelse(as.numeric(value) < 1, value, range01(value))) %>%   
+  ungroup %>%
+  mutate(param = factor(param, level = c("input_dim", "seq_len", "embed_dim", "num_filters", "dropout", "test_acc"))) %>%
+  mutate(label = ifelse(param == "test_acc" & best, value, NA)) %>% 
+  ggplot(aes(param, value)) + 
+  geom_line(aes(group = step, colour = best, size = best)) +
+  ggrepel::geom_label_repel(aes(label = label), nudge_x = 1, segment.color = "red", color = "red") +
+  scale_colour_manual(values = c("black", "red")) +
+  scale_size_manual(values = c(.1, 1)) +
+  #facet_wrap(~id, ncol = 1) +
+  labs(x = "", y = "") + 
+  ggtitle("Parameter of a multi-channel Ccnvolutional neural network", subtitle = "Note: integer variables are standardized [0, 1]") +
+  theme_minimal() + 
+  theme(
+    #axis.text.x = element_text(angle = 30, hjust = 1), 
+    legend.position = "bottom"
+  )
+```
+
+
+<!---
+
+### Other NLP Data
+
+* https://www.kaggle.com/mrisdal/fake-news/home
+* [rpanama](https://github.com/dgrtwo/rpanama)
+    + https://www.kaggle.com/zusmani/paradise-papers/home
+* https://www.kaggle.com/shujian/arxiv-nlp-papers-with-github-link
+* [`fulltext`](https://github.com/ropensci/fulltext)
+* [rorcid](https://github.com/ropensci/rorcid)
+* [roadoi](https://github.com/ropensci/roadoi)
+* [manifestoR](https://github.com/ManifestoProject/manifestoR)
+
+
+## Other NLP Resources
+
+* https://www.kaggle.com/rtatman/stopword-lists-for-19-languages
+* https://www.r-craft.org/r-news/regex-tutorial-with-examples/
+* http://ruder.io/optimizing-gradient-descent/
+* [good for explanations](https://beta.rstudioconnect.com/ml-with-tensorflow-and-r/#22)
+* https://github.com/OmaymaS/stringr_explorer
+* [Building a neural network from scratch in R](https://selbydavid.com/2018/01/09/neural-network/)
+
+## Other NLP Packages
+
+* [`decryptr` An extensible API for breaking captchas](https://github.com/decryptr/decryptr)
+* [`textfeatures`](https://github.com/mkearney/textfeatures)
+* [`dbx` A fast, easy-to-use database library for R](https://github.com/ankane/dbx)
+* [`textreuse`](https://github.com/ropensci/textreuse)
+* [Chunkwise Text-file Processing for 'dplyr'](https://github.com/edwindj/chunked)
+* [iml: interpretable machine learning](https://github.com/christophM/iml)
+* [ggfittext](https://github.com/wilkox/ggfittext)
+* [loggr](https://github.com/smbache/loggr)
+* [text generation with markov files](https://github.com/abresler/markovifyR)
+* [rBayesianOptimization](https://github.com/yanyachen/rBayesianOptimization)
+* [mlr3: Machine Learning in R - next generation](https://github.com/mlr-org/mlr3)
+* [textclean](https://github.com/trinker/textclean)
+* [quanteda: Multilingual Stopword Lists in R](http://stopwords.quanteda.io)
+* [rematch2](https://github.com/MangoTheCat/rematch2)
+* [telegram](https://github.com/lbraglia/telegram)
+* [speedtest](https://github.com/hrbrmstr/speedtest)
+* [preText](https://github.com/matthewjdenny/preText)
+* [String operations the Python way: pystr](https://github.com/Ironholds/pystr)
+* [A better dictionary class for R.](https://github.com/stefano-meschiari/dict)
+* [book code](https://github.com/IronistM/Modern-Optimization-with-R)
+* [textmineR](https://github.com/TommyJones/textmineR)
+* [SuperLearner](https://github.com/ecpolley/SuperLearner) 
+
+--->
