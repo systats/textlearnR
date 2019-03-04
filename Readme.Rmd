@@ -4,10 +4,11 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F, eval = T, fig.pos = "center", fig.height = 5, fig.width = 7, warning = F, message = F, error = F)
+knitr::opts_chunk$set(echo = F, eval = T, fig.align = "center", fig.height = 5, fig.width = 7, warning = F, message = F, error = F)
 
 pacman::p_load(devtools, tidyverse, keras, GA, dials, RSQLite, magrittr, crayon)
 devtools::load_all()
+ggplot2::theme_set(theme_classic())
 
 # Query runs from database
 con <- dbConnect(RSQLite::SQLite(), "data/model_dump.db")
@@ -17,7 +18,7 @@ runs <- con %>%
   reshape_runs() 
 ```
 
-A simple collection of well working NLP models (Keras) in R, tuned and benchmarked on a variety of datasets. Work in progress and only supporting classification tasks (at the moment).  
+A simple collection of well working NLP models (Keras) in R, tuned and benchmarked on a variety of datasets. This is a work in progress and the first version only supports classification tasks (at the moment).
 
 ```{r}
 gg_compare <- runs %>% 
@@ -36,7 +37,7 @@ gg_compare <- runs %>%
   ggtitle("Test performance compared accross classifiers", subtitle = "Note: The test sets are roughly balanced") +
   labs(x = "", y = "Test Accuracy") + 
   facet_grid(data~backend, scales = "free_y") +
-  ggthemes::theme_hc() +
+  #ggthemes::theme_hc() +
   #scale_fill_viridis_d() + 
   theme(legend.position = "right")
 
@@ -46,9 +47,9 @@ gg_compare
 
 ## What can this package do for you? (in the future)
 
-Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that a prior defined and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (comming soon). Furthermore, it allows to define parameters for text processing (max number of words and text length), which are also considered to be priors.  
+Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined by a prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
 
-Beside language models, `textlearnR` also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable: 
+Beside language models, textlearnR also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable:
 
 #### Searching
 
@@ -59,7 +60,7 @@ Beside language models, `textlearnR` also integrates third party packages for au
 #### Optimization
 
 * [`mlrMBO`](https://github.com/mlr-org/mlrMBO) Bayesian and model-based optimization.
-* [`GA`](https://github.com/luca-scr/GA) Genetic algorithems for stochastic optimization.
+* [`GA`](https://github.com/luca-scr/GA) Genetic algorithms for stochastic optimization.
 * Others:
     + Nelder–Mead simplex (gradient-free)
     + Particle swarm (gradient-free)
@@ -118,10 +119,10 @@ textlearnR::keras_simple_mlp(
 
 ```{r}
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
-runs %>% 
+gg_flow <- runs %>% 
   filter(data == "celeb_dat", model_name == "simple_mlp") %>%
   mutate(step = paste0(id, "_", step)) %>%
-  select(id, step, best, test_acc, input_dim, seq_len, embed_dim, dropout) %>%
+  select(id, step, best, input_dim, seq_len, embed_dim, dense_dim, dropout, test_acc) %>%
   gather(param, value, -step, -best, -id) %>% 
   mutate(value = as.numeric(value)) %>%
   drop_na %>%
@@ -131,23 +132,51 @@ runs %>%
   mutate(param = factor(param, level = c("input_dim", "seq_len", "embed_dim", "dropout", "dense_dim", "test_acc"))) %>%
   mutate(label = ifelse(param == "test_acc" & best, value, NA)) %>% 
   ggplot(aes(param, value)) + 
-  geom_line(aes(group = step, colour = best, size = best)) +
+  geom_line(aes(group = step, colour = best, size = best), show.legend = F) +
   ggrepel::geom_label_repel(aes(label = label), nudge_x = 1, segment.color = "red", color = "red") +
   scale_colour_manual(values = c("black", "red")) +
   scale_size_manual(values = c(.1, 1)) +
   #facet_wrap(~id, ncol = 1) +
   labs(x = "", y = "") + 
-  ggtitle("Parameter of a simple neural network", subtitle = "Note: integer variables are standardized [0, 1]") +
-  theme_minimal() + 
+  ggtitle("Parameters of a simple neural network", subtitle = "Note: integer variables are standardized [0, 1]") +
+  theme_classic() +
   theme(
     #axis.text.x = element_text(angle = 30, hjust = 1), 
     legend.position = "bottom"
   )
+
+
+gg_reg <- runs %>% 
+  filter(data == "celeb_dat", model_name == "simple_mlp") %>% 
+  select(input_dim, seq_len, embed_dim, dense_dim, dropout, test_acc) %>% 
+  mutate_all(as.numeric) %>%
+  mutate_all(scale) %>% 
+  lm(test_acc ~ input_dim + seq_len + embed_dim + dense_dim + dropout, data = .) %>% 
+  #sjPlot::plot_model() +
+  broom::tidy() %>% 
+  mutate(term = factor(term, level = c("input_dim", "seq_len", "embed_dim", "dropout", "dense_dim", "(Intercept)"))) %>%
+  #filter(term != "(Intercept)") %>%
+  mutate(lower = estimate - 1.96*std.error, upper = estimate + 1.96*std.error, color = ifelse(estimate >= 0, T, F)) %>% 
+  ggplot(aes(term, estimate)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper, colour = color)) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ggtitle("Linear Regression with Acc ~ parameters")  +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_colour_manual(values = c("red", "blue"))
+
+gridExtra::grid.arrange(gg_flow, gg_reg, ncol = 1, 
+                        layout_matrix = matrix(
+                          c(1, 1, 2), 3))
 ```
 
 
+
+
+
+
 ```{r}
-runs %>% 
+gg_flow2 <- runs %>% 
   filter(data == "celeb_dat", model_name == "multi_cnn") %>%
   mutate(step = paste0(id, "_", step)) %>%
   #glimpse
@@ -167,12 +196,31 @@ runs %>%
   scale_size_manual(values = c(.1, 1)) +
   #facet_wrap(~id, ncol = 1) +
   labs(x = "", y = "") + 
-  ggtitle("Parameter of a multi-channel Ccnvolutional neural network", subtitle = "Note: integer variables are standardized [0, 1]") +
-  theme_minimal() + 
-  theme(
-    #axis.text.x = element_text(angle = 30, hjust = 1), 
-    legend.position = "bottom"
-  )
+  ggtitle("Parameters of a multi-channel convolutional neural network", subtitle = "Note: integer variables are standardized [0, 1]") +
+  theme(legend.position = "none")
+
+
+gg_reg2 <- runs %>% 
+  filter(data == "celeb_dat", model_name == "multi_cnn") %>% 
+  select(input_dim, seq_len, embed_dim, num_filters, dropout, test_acc) %>% 
+  mutate_all(as.numeric) %>%
+  mutate_all(scale) %>% 
+  lm(test_acc ~ input_dim + seq_len + embed_dim + num_filters + dropout, data = .) %>% 
+  #sjPlot::plot_model() +
+  broom::tidy() %>% 
+  mutate(term = factor(term, level = c("input_dim", "seq_len", "embed_dim", "num_filters", "dropout", "test_acc", "(Intercept)"))) %>%
+  #filter(term != "(Intercept)") %>%
+  mutate(lower = estimate - 1.96*std.error, upper = estimate + 1.96*std.error, color = ifelse(estimate >= 0, T, F)) %>% 
+  ggplot(aes(term, estimate)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper, colour = color)) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ggtitle("Linear Regression with Acc ~ parameters")  +
+  theme(legend.position = "none") +
+  scale_colour_manual(values = c("red", "blue"))
+
+gridExtra::grid.arrange(gg_flow2, gg_reg2, ncol = 1, 
+                        layout_matrix = matrix(
+                          c(1, 1, 2), 3))
 ```
 
 
@@ -201,6 +249,7 @@ runs %>%
 
 ## Other NLP Packages
 
+* [handlr](https://ropensci.org/technotes/2019/02/27/handlr-release/)
 * [`decryptr` An extensible API for breaking captchas](https://github.com/decryptr/decryptr)
 * [`textfeatures`](https://github.com/mkearney/textfeatures)
 * [`dbx` A fast, easy-to-use database library for R](https://github.com/ankane/dbx)

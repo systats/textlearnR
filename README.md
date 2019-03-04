@@ -3,14 +3,14 @@ textlearnR
 
 A simple collection of well working NLP models (Keras) in R, tuned and benchmarked on a variety of datasets. This is a work in progress and the first version only supports classification tasks (at the moment).
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-1-1.png)
+<img src="Readme_files/figure-markdown_github/unnamed-chunk-1-1.png" style="display: block; margin: auto;" />
 
 What can this package do for you? (in the future)
 -------------------------------------------------
 
 Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined by a prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
 
-Beside language models, `textlearnR` also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable:
+Beside language models, textlearnR also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable:
 
 #### Searching
 
@@ -26,7 +26,7 @@ Beside language models, `textlearnR` also integrates third party packages for au
     -   Nelder–Mead simplex (gradient-free)
     -   Particle swarm (gradient-free)
 
-For constructing new parameter objects the tidy way, the package `dials` is used. Each model optimized is saved to a SQLite database in `data/model_dump.db`. Of course, committed to [tidy principles](https://cran.r-project.org/package=tidyverse/vignettes/manifesto.html). Contributions are highly welcomed!
+For constructing new parameter objects the tidy way, the package `dials` is used. Each model optimized is saved to a SQLite database in `data/model_dump.db`. Of course, committed to [tidy principals](https://cran.r-project.org/package=tidyverse/vignettes/manifesto.html). Contributions are highly welcomed!
 
 Supervised Models
 -----------------
@@ -93,9 +93,9 @@ textlearnR::keras_simple_mlp(
 
 -   rather flowchart or ggalluvial
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-4-1.png)
+<img src="Readme_files/figure-markdown_github/unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-5-1.png)
+<img src="Readme_files/figure-markdown_github/unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
 
 <!---
 
@@ -122,6 +122,7 @@ textlearnR::keras_simple_mlp(
 
 ## Other NLP Packages
 
+* [handlr](https://ropensci.org/technotes/2019/02/27/handlr-release/)
 * [`decryptr` An extensible API for breaking captchas](https://github.com/decryptr/decryptr)
 * [`textfeatures`](https://github.com/mkearney/textfeatures)
 * [`dbx` A fast, easy-to-use database library for R](https://github.com/ankane/dbx)

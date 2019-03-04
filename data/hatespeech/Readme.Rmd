@@ -7,8 +7,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-* [Paper Github](https://github.com/t-davidson/hate-speech-and-offensive-language)
+[Paper Github](https://github.com/t-davidson/hate-speech-and-offensive-language)
 
 
 * `count` number of CrowdFlower users who coded each tweet (min is 3, sometimes more users coded a tweet when judgments were determined to be unreliable by CF).
@@ -20,7 +19,6 @@ knitr::opts_chunk$set(echo = TRUE)
     1 - offensive  language
     2 - neither
 
-
 You must create a model which predicts a probability of each type of toxicity for each comment.
 
 ```{r, eval = T}
@@ -28,6 +26,7 @@ pacman::p_load(tidyverse)
 hate_dat <- read_csv("labeled_data.csv") %>% 
   rename(id = X1) %>%
   glimpse
+
 # write_rds(toxic_dat, path = "toxic_dat.rds")
 # save(toxic_dat, file = "hate_dat")
 ```
