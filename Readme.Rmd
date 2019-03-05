@@ -47,9 +47,10 @@ gg_compare
 
 ## What can this package do for you? (in the future)
 
-Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined by a prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
+Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
 
-Beside language models, textlearnR also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable:
+Beside language models, textlearnR also integrates third party packages for automatically tuning hyperparameters. The following strategies will be avaiable:
+
 
 #### Searching
 
@@ -59,8 +60,8 @@ Beside language models, textlearnR also integrates third party packages for auto
   
 #### Optimization
 
+* [`GA`](https://github.com/luca-scr/GA) Genetic algorithms for stochastic optimization (only real-values).
 * [`mlrMBO`](https://github.com/mlr-org/mlrMBO) Bayesian and model-based optimization.
-* [`GA`](https://github.com/luca-scr/GA) Genetic algorithms for stochastic optimization.
 * Others:
     + Nelder–Mead simplex (gradient-free)
     + Particle swarm (gradient-free)
@@ -119,6 +120,7 @@ textlearnR::keras_simple_mlp(
 
 ```{r}
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+
 gg_flow <- runs %>% 
   filter(data == "celeb_dat", model_name == "simple_mlp") %>%
   mutate(step = paste0(id, "_", step)) %>%
@@ -144,7 +146,6 @@ gg_flow <- runs %>%
     #axis.text.x = element_text(angle = 30, hjust = 1), 
     legend.position = "bottom"
   )
-
 
 gg_reg <- runs %>% 
   filter(data == "celeb_dat", model_name == "simple_mlp") %>% 
@@ -249,6 +250,7 @@ gridExtra::grid.arrange(gg_flow2, gg_reg2, ncol = 1,
 
 ## Other NLP Packages
 
+* [Rex Friendly Regular Expressions](https://github.com/kevinushey/rex)
 * [handlr](https://ropensci.org/technotes/2019/02/27/handlr-release/)
 * [`decryptr` An extensible API for breaking captchas](https://github.com/decryptr/decryptr)
 * [`textfeatures`](https://github.com/mkearney/textfeatures)
@@ -274,3 +276,30 @@ gridExtra::grid.arrange(gg_flow2, gg_reg2, ncol = 1,
 * [SuperLearner](https://github.com/ecpolley/SuperLearner) 
 
 --->
+
+
+
+```{r, eval = F, echo = F}
+library(ruimtehol)
+data("dekamer", package = "ruimtehol")
+dekamer$x <- strsplit(dekamer$question, "\\W")
+dekamer$x <- sapply(dekamer$x, FUN = function(x) paste(setdiff(x, ""), collapse = " "))
+dekamer$x <- tolower(dekamer$x)
+dekamer$y <- strsplit(dekamer$question_theme, split = ",")
+dekamer$y <- lapply(dekamer$y, FUN=function(x) gsub(" ", "-", x))
+
+set.seed(123456789)
+model <- embed_tagspace(x = dekamer$x, y = dekamer$y,
+                        dim = 50, 
+                        lr = 0.01, epoch = 40, loss = "softmax", adagrad = TRUE, 
+                        similarity = "cosine", negSearchLimit = 50,
+                        ngrams = 2, minCount = 2)
+plot(model)                        
+            
+text <- c("de nmbs heeft het treinaanbod uitgebreid via onteigening ...",
+          "de migranten komen naar europa de asielcentra ...")                   
+predict(model, text, k = 3)  
+predict(model, "koning filip", k = 10, type = "knn")
+predict(model, "koning filip", k = 10, type = "embedding")
+```
+

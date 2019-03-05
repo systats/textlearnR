@@ -8,9 +8,9 @@ A simple collection of well working NLP models (Keras) in R, tuned and benchmark
 What can this package do for you? (in the future)
 -------------------------------------------------
 
-Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined by a prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
+Training neural networks can be bothering and time consuming due to the sheer amount of hyper-parameters. Hyperparameters are values that are defined prior and provided as additional model input. Tuning those requires either deeper knowledge about the model behavior itself or computational resources for random searches or optimization on the parameter space. `textlearnR` provides a light weight framework to train and compare ML models from Keras, H2O, starspace and text2vec (coming soon). Furthermore, it allows to define parameters for text processing (e.g. maximal number of words and text length), which are also considered to be priors.
 
-Beside language models, textlearnR also integrates third party packages for automatically tuning hyperparameters. The following strategies are avaiable:
+Beside language models, textlearnR also integrates third party packages for automatically tuning hyperparameters. The following strategies will be avaiable:
 
 #### Searching
 
@@ -20,8 +20,8 @@ Beside language models, textlearnR also integrates third party packages for auto
 
 #### Optimization
 
+-   [`GA`](https://github.com/luca-scr/GA) Genetic algorithms for stochastic optimization (only real-values).
 -   [`mlrMBO`](https://github.com/mlr-org/mlrMBO) Bayesian and model-based optimization.
--   [`GA`](https://github.com/luca-scr/GA) Genetic algorithms for stochastic optimization.
 -   Others:
     -   Nelder–Mead simplex (gradient-free)
     -   Particle swarm (gradient-free)
@@ -122,6 +122,7 @@ textlearnR::keras_simple_mlp(
 
 ## Other NLP Packages
 
+* [Rex Friendly Regular Expressions](https://github.com/kevinushey/rex)
 * [handlr](https://ropensci.org/technotes/2019/02/27/handlr-release/)
 * [`decryptr` An extensible API for breaking captchas](https://github.com/decryptr/decryptr)
 * [`textfeatures`](https://github.com/mkearney/textfeatures)

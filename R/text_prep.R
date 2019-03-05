@@ -49,3 +49,41 @@ transform_text <- function(x){
   
   return(x)
 }
+
+
+#' transform_features
+#' 
+#' @param x is a text string
+#' 
+#' @export
+transform_features <- function(x){
+  text <- tibble(text = x) %>% 
+    #tidytext::unnest_tokens(sentence, text, token = "sentences", to_low = F) %>%
+    mutate(id = 1:n()) %>%
+    tidytext::unnest_tokens(word, text, token = "words", to_low = F) %>%
+    group_by(id) %>% 
+    mutate(tid = 1:n()) %>%
+    ungroup 
+  #cnlp_annotate(as_strings = T) %>% 
+  #.$token %>% 
+  #filter(!upos %in% c("PUNCT", "DET"), tid != 0) %>% 
+  #select(id, sid, tid, word, lemma)
+  
+  ngram <- text %>%
+    group_by(id) %>%
+    summarise(
+      text_word = paste(word, collapse = " ")
+      #text_lemma = paste(lemma, collapse = " ")
+    ) %>%
+    ungroup %>% 
+    #mutate(text_lemma = text_lemma %>% str_remove("\\|")) %>%
+    tidytext::unnest_tokens(ngram, text_word, token = "ngrams", n = 5, to_low = F) %>%
+    group_by(id) %>%
+    mutate(tid = 1:n())
+  
+  out <- text %>% 
+    left_join(ngram) %>% 
+    mutate(ngram = ifelse(is.na(ngram), word, ngram))
+  
+  return(out)
+}  
