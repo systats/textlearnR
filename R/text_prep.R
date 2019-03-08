@@ -36,16 +36,20 @@ reshape_runs <- function(long_runs){
 
 transform_text <- function(x){
   
-  tokenizer <- text_tokenizer(num_words = x$input_dim, lower = F, split = " ", char_level = F)
-  fit_text_tokenizer(tokenizer, x$text_train)
-  
-  x$x_train <- tokenizer %>% 
-    texts_to_sequences(x$text_train) %>%
-    pad_sequences(maxlen = x$seq_len)
-  
-  x$x_test <- tokenizer %>% 
-    texts_to_sequences(x$text_test) %>%
-    pad_sequences(maxlen = x$seq_len)
+  ## only perform if sequences are not delivered
+  if(is.null(x$x_train)){
+    
+    tokenizer <- text_tokenizer(num_words = x$input_dim, lower = F, split = " ", char_level = F)
+    fit_text_tokenizer(tokenizer, x$text_train)
+    
+    x$x_train <- tokenizer %>% 
+      texts_to_sequences(x$text_train) %>%
+      pad_sequences(maxlen = x$seq_len)
+    
+    x$x_test <- tokenizer %>% 
+      texts_to_sequences(x$text_test) %>%
+      pad_sequences(maxlen = x$seq_len)
+  }
   
   return(x)
 }
